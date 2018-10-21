@@ -38,7 +38,7 @@ def adjust_original_to_digitized(metadata):
         metadata.save_file()
 
 
-def print_photo_information(metadata):
+def print_photo_information(metadata, file):
     # print(metadata)
     # print(type(metadata))
     # print(dir(metadata))
@@ -84,7 +84,7 @@ if __name__ == "__main__":
         metadata = GExiv2.Metadata(file)
 
         rename_file_to_original(metadata, file, str(counter))
-        print_photo_information(metadata)
+        print_photo_information(metadata, file)
 
         print("--------------")
         counter += 1
