@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import os
 
 import gi
@@ -27,6 +28,21 @@ class Camera(Enum):
     SAMSUNG = "NX mini"
     SONY = "DSC-HX10V"
     REDMI = "Redmi Note3"
+
+    @staticmethod
+    def list():
+        return list(map(lambda f: f.name.lower(), Camera))
+
+
+class Function(Enum):
+    RESET = "reset"
+    PRINT = "print"
+    HOURS = "hours"
+    RENAME = "rename"
+
+    @staticmethod
+    def list():
+        return list(map(lambda f: f.value, Function))
 
 
 def adjust_original_to_digitized(metadata):
@@ -74,17 +90,49 @@ def rename_file_to_original(metadata, file, unique_suffix):
 
 
 if __name__ == "__main__":
-    directory = "resources"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("func", help="function to call [" + ", ".join(Function.list()) + "]")
+    parser.add_argument("-d", "--directory", help="directory with images")
+    parser.add_argument("-t", "--time", type=int, help="hours to offset", required=False)
+    parser.add_argument("-c", "--camera", help="Camera to filter [" + ",".join(Camera.list()) + "]", required=False)
+    args = parser.parse_args()
+
+    directory = args.directory
+    time = args.time
+    func = args.func.lower()
+    camera = args.camera
+
+    # validate arguments
+    if func not in Function.list():
+        print("invalid func: " + func)
+        exit(1)
+
+    if camera is not None and camera.lower() not in Camera.list():
+        print("invalid camera: " + camera)
+        exit(1)
+
+    # TODO: debug why this is not triggering
+    if func == Function.HOURS and (camera is None or time is None):
+        print("missing arguments for func=hours: camera=" + str(camera) + ", time=" + str(time))
+
     files = [os.path.join(directory, element) for element in sorted(os.listdir(directory))
              if os.path.isfile(os.path.join(directory, element))]
-    print(files)
-
+    exit(0)
     counter = 1
     for file in files:
         metadata = GExiv2.Metadata(file)
 
-        rename_file_to_original(metadata, file, str(counter))
-        print_photo_information(metadata, file)
+        if func == Function.PRINT:
+            print_photo_information(metadata, file)
+        elif func == Function.RESET:
+            adjust_original_to_digitized(metadata)
+        elif func == Function.HOURS:
+            adjust_original_for_camera(metadata, camera, time)
+        elif func == Function.RENAME:
+            rename_file_to_original(metadata, file, str(counter))
+        else:
+            print("invalid func: " + func)
+            parser.print_help()
+            exit(1)
 
-        print("--------------")
         counter += 1
