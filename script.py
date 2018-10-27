@@ -48,7 +48,7 @@ class Camera(Enum):
 class Function(Enum):
     RESET = "reset"
     PRINT = "print"
-    HOURS = "hours"
+    SECONDS = "seconds"
     RENAME = "rename"
 
     @staticmethod
@@ -67,11 +67,11 @@ class Function(Enum):
         raise AssertionError("unknown func " + str)
 
 
-def adjust_original_to_digitized(metadata):
+def adjust_original_to_digitized(metadata, file):
     original = metadata[Tags.ORIGINAL.value]
     digitized = metadata[Tags.DIGITIZED.value]
     if original != digitized:
-        print("adjusting original date from " + original + " to " + digitized + " in file " + file)
+        print(file + ": " + original + " -> " + digitized)
         metadata[Tags.ORIGINAL.value] = digitized
         metadata.save_file()
 
@@ -87,16 +87,18 @@ def print_photo_information(metadata, file):
     print('Camera:        ', metadata[Tags.CAMERA.value])
 
 
-def adjust_original_for_camera(metadata, camera, hours):
-    if camera == metadata[Tags.CAMERA.value]:
-        metadata[Tags.ORIGINAL.value] = \
-            _adjust_datetime_str_by_hours(metadata[Tags.ORIGINAL.value], hours)
+def adjust_original_for_camera(metadata, file, camera, seconds):
+    if camera.value.lower() == metadata[Tags.CAMERA.value].lower():
+        old_datetime = metadata[Tags.ORIGINAL.value]
+        new_datetime = _adjust_datetime_str_by_seconds(old_datetime, seconds)
+        metadata[Tags.ORIGINAL.value] = new_datetime
+        print(file + ": " + old_datetime + " -> " + new_datetime)
         metadata.save_file()
 
 
-def _adjust_datetime_str_by_hours(old_date_time_str, hours):
+def _adjust_datetime_str_by_seconds(old_date_time_str, seconds):
     old_datetime = datetime.strptime(old_date_time_str, DatetimeFormat.EXIF.value)
-    new_datetime = old_datetime + timedelta(hours=hours)
+    new_datetime = old_datetime + timedelta(seconds=seconds)
     new_date_time_str = new_datetime.strftime(DatetimeFormat.EXIF.value)
     return new_date_time_str
 
@@ -115,7 +117,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("func", help="function to call [" + ", ".join(Function.list()) + "]")
     parser.add_argument("-d", "--directory", help="directory with images")
-    parser.add_argument("-t", "--time", type=int, help="hours to offset", required=False)
+    parser.add_argument("-t", "--time", type=int, help="seconds to offset", required=False)
     parser.add_argument("-c", "--camera", help="Camera to filter [" + ", ".join(Camera.list()) + "]", required=False)
     args = parser.parse_args()
 
@@ -126,7 +128,7 @@ if __name__ == "__main__":
     time = args.time
 
     # validate args for func
-    if func == Function.HOURS and (camera is None or time is None):
+    if func == Function.SECONDS and (camera is None or time is None):
         print("Missing arguments for func=hours. Actual arguments are: camera=" + str(camera) + ", time=" + str(time))
         exit(1)
 
@@ -140,9 +142,9 @@ if __name__ == "__main__":
         if func == Function.PRINT:
             print_photo_information(metadata, file)
         elif func == Function.RESET:
-            adjust_original_to_digitized(metadata)
-        elif func == Function.HOURS:
-            adjust_original_for_camera(metadata, camera, time)
+            adjust_original_to_digitized(metadata, file)
+        elif func == Function.SECONDS:
+            adjust_original_for_camera(metadata, file, camera, time)
         elif func == Function.RENAME:
             rename_file_to_original(metadata, file, str(counter))
         else:
