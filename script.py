@@ -48,7 +48,7 @@ class Camera(Enum):
 class Function(Enum):
     RESET = "reset"
     PRINT = "print"
-    SECONDS = "seconds"
+    TIME = "time"
     RENAME = "rename"
 
     @staticmethod
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     time = args.time
 
     # validate args for func
-    if func == Function.SECONDS and (camera is None or time is None):
+    if func == Function.TIME and (camera is None or time is None):
         print("Missing arguments for func=hours. Actual arguments are: camera=" + str(camera) + ", time=" + str(time))
         exit(1)
 
@@ -143,7 +143,7 @@ if __name__ == "__main__":
             print_photo_information(metadata, file)
         elif func == Function.RESET:
             adjust_original_to_digitized(metadata, file)
-        elif func == Function.SECONDS:
+        elif func == Function.TIME:
             adjust_original_for_camera(metadata, file, camera, time)
         elif func == Function.RENAME:
             rename_file_to_original(metadata, file, str(counter))
