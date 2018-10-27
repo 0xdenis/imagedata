@@ -108,7 +108,7 @@ def rename_file_to_original(metadata, file, unique_suffix):
         .strftime(DatetimeFormat.OUTPUT.value)
     new_name = directory + "/" + original + "_" + unique_suffix + extension
     print(file + " -> " + new_name)
-    # os.rename(file, new_name)
+    os.rename(file, new_name)
 
 
 if __name__ == "__main__":
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     parser.add_argument("func", help="function to call [" + ", ".join(Function.list()) + "]")
     parser.add_argument("-d", "--directory", help="directory with images")
     parser.add_argument("-t", "--time", type=int, help="hours to offset", required=False)
-    parser.add_argument("-c", "--camera", help="Camera to filter [" + ",".join(Camera.list()) + "]", required=False)
+    parser.add_argument("-c", "--camera", help="Camera to filter [" + ", ".join(Camera.list()) + "]", required=False)
     args = parser.parse_args()
 
     # parse args to types
@@ -127,12 +127,12 @@ if __name__ == "__main__":
 
     # validate args for func
     if func == Function.HOURS and (camera is None or time is None):
-        print("missing arguments for func=hours: camera=" + str(camera) + ", time=" + str(time))
+        print("Missing arguments for func=hours. Actual arguments are: camera=" + str(camera) + ", time=" + str(time))
         exit(1)
 
     files = [os.path.join(directory, element) for element in sorted(os.listdir(directory))
              if os.path.isfile(os.path.join(directory, element))]
-    exit(0)
+
     counter = 1
     for file in files:
         metadata = GExiv2.Metadata(file)
