@@ -33,6 +33,17 @@ class Camera(Enum):
     def list():
         return list(map(lambda f: f.name.lower(), Camera))
 
+    @staticmethod
+    def parse(str):
+        if str is None:
+            return None
+
+        for cam in Camera:
+            if cam.name.lower() == str.lower():
+                return cam
+
+        raise AssertionError("unknown camera " + str)
+
 
 class Function(Enum):
     RESET = "reset"
@@ -43,6 +54,17 @@ class Function(Enum):
     @staticmethod
     def list():
         return list(map(lambda f: f.value, Function))
+
+    @staticmethod
+    def parse(str):
+        if str is None:
+            return None
+
+        for func in Function:
+            if func.value.lower() == str.lower():
+                return func
+
+        raise AssertionError("unknown func " + str)
 
 
 def adjust_original_to_digitized(metadata):
@@ -97,23 +119,16 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--camera", help="Camera to filter [" + ",".join(Camera.list()) + "]", required=False)
     args = parser.parse_args()
 
+    # parse args to types
+    func = Function.parse(args.func)
+    camera = Camera.parse(args.camera)
     directory = args.directory
     time = args.time
-    func = args.func.lower()
-    camera = args.camera
 
-    # validate arguments
-    if func not in Function.list():
-        print("invalid func: " + func)
-        exit(1)
-
-    if camera is not None and camera.lower() not in Camera.list():
-        print("invalid camera: " + camera)
-        exit(1)
-
-    # TODO: debug why this is not triggering
+    # validate args for func
     if func == Function.HOURS and (camera is None or time is None):
         print("missing arguments for func=hours: camera=" + str(camera) + ", time=" + str(time))
+        exit(1)
 
     files = [os.path.join(directory, element) for element in sorted(os.listdir(directory))
              if os.path.isfile(os.path.join(directory, element))]
