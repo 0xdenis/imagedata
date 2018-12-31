@@ -19,7 +19,7 @@ class Tags(Enum):
 
 class DatetimeFormat(Enum):
     EXIF = "%Y:%m:%d %H:%M:%S"
-    OUTPUT = "%Y-%m-%d_%H:%M:%S"
+    OUTPUT = "%Y%m%d_%H%M%S"
 
 
 class Camera(Enum):
