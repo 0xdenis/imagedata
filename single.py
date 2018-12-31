@@ -85,7 +85,7 @@ if __name__ == "__main__":
     new_datetime = args.datetime
     # test given datetime
     datetime.strptime(new_datetime, DatetimeFormat.EXIF.value)
-    camera = Camera.parse(args.camera)
+    camera = Camera.parse(args.camera).value
 
     metadata = GExiv2.Metadata(file)
 
